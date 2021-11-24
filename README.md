@@ -34,8 +34,6 @@ docker-compose up
 
 ### Linting
 
-#### In Any other IDE
-
 - Run `yarn lint` in indivisual `packages` to check for linting errors.
 - Run `yarn lint:fix` to fix the linting errors.
 
