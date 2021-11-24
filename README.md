@@ -1,17 +1,28 @@
-# 🏄 dockerized
+# next-js + flask application template
 
-[![emoji-log](https://cdn.jsdelivr.net/gh/ahmadawais/stuff@ca978741836412b5e33ce8561f5f95c933177067/emoji-log/flat.svg)](https://github.com/KumarAbhirup/Emoji-Log/)
-[![Twitter](https://img.shields.io/twitter/follow/kumar_abhirup.svg?style=social&label=@kumar_abhirup)](https://twitter.com/kumar_abhirup/)
+[![Twitter](https://img.shields.io/twitter/follow/SciKnowEngine.svg?style=social&label=@SciKnowEngine)](https://twitter.com/sciknowengine/)
 
-## 📦 Setup
+##  Acknowledgements and Purpose 
 
-### 🖥️ Development environment
+This template was constructed from two simple boilerplate GitHub projects to provide 
+a simple NextJS client on top of a Flask python backend.  
+ 
+* https://github.com/KumarAbhirup/dockerized
+* https://github.com/GullyBurns/react-flask-docker-boilerplate
+
+This application is intended to provide a useful starting point for research prototyping 
+based on pythonic data science with full data-visualization capabiliities derived from
+Next/React/Typescript technology.  
+
+##  Setup
+
+### Development environment
 
 - Run
 
-```bash
-git clone https://github.com/KumarAbhirup/dockerized dockerized # to clone project
-cd dockerized # enter in the project
+```
+git clone https://github.com/GullyBurns/nextjs-template # to clone project
+cd nextjs-template # enter in the project
 docker-compose up
 ```
 
@@ -21,27 +32,18 @@ docker-compose up
 
 - Visit `http://localhost:3000/`
 
-### ⚒️ Linting
-
-#### In VSCode
-
-- Install ESLint and Prettier VSCode extensions.
-- **Done! Now you have live linting and autofixing setup!**
+### Linting
 
 #### In Any other IDE
 
 - Run `yarn lint` in indivisual `packages` to check for linting errors.
 - Run `yarn lint:fix` to fix the linting errors.
 
-## 🦄 Info
+## Info
 
 - We are following the micro-services architechture. That means, to install npm modules, you'll have to run `yarn add` in the respective packages.
 - To customize the linter, use `.eslintrc` and `.prettierrc` file. [Learn more](https://eslint.org)
 
-## 📝 License
+## License
 
-**MIT &copy; Kumar Abhirup**
-
-Created by [Kumar Abhirup](https://kumar.now.sh) 👉 [![Twitter](https://img.shields.io/twitter/follow/kumar_abhirup.svg?style=social&label=@kumar_abhirup)](https://twitter.com/kumar_abhirup/).
-
-Peace ✌️
+**MIT**

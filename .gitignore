@@ -65,3 +65,7 @@ typings/
 
 # Nextjs
 .next
+
+__pycache__
+.history
+.idea/
