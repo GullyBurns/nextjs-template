@@ -1,15 +1,25 @@
 version: "3.3"
 
 services:
+  api:
+    build: packages/api
+    command: [ "flask", "run", "--host=0.0.0.0" ]
+    volumes:
+        - ./packages/api:/backend
+    environment:
+        - FLASK_ENV=development
+        - FLASK_APP=app.py
+    ports:
+        - 5000:5000
   nextjs:
     ports:
       - 3000:3000
     build:
-      context: packages/landingpage
+      context: packages/client
       dockerfile: Dockerfile
     volumes:
-      - ./packages/landingpage:/usr/src/app
-      - /usr/src/app/node_modules
-      - /usr/src/app/.next
+      - ./packages/client:/frontend
+      - /frontend/node_modules
+      - /frontend/.next
     env_file:
       - .env

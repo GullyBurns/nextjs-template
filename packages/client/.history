@@ -1,0 +1,4 @@
+2021-11-24T11:07:40.czirwc1macos0738 ls -al
+2021-11-24T11:07:40.czirwc1macos0738 ls -al
+2021-11-24T11:07:48.czirwc1macos0738 more .env.example 
+2021-11-24T11:07:55.czirwc1macos0738 mv .env.example .env
