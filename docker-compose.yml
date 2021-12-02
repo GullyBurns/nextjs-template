@@ -5,12 +5,13 @@ services:
     build: packages/api
     command: [ "flask", "run", "--host=0.0.0.0" ]
     volumes:
-        - ./packages/api:/backend
+      - ./packages/api:/backend
+      - /Users/gburns/Documents/2021H1:/data
     environment:
-        - FLASK_ENV=development
-        - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - FLASK_APP=app.py
     ports:
-        - 5000:5000
+      - 5001:5000
   nextjs:
     ports:
       - 3000:3000
