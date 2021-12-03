@@ -1,15 +1,11 @@
 require('dotenv').config()
 
+const webpack = require("webpack");
+const path = require("path");
+
 module.exports = {
-  env: {
-    GA_TRACKING_ID: process.env.GA_TRACKING_ID,
-  },
-  webpackDevMiddleware: config => {
-    config.watchOptions = {
-      poll: 1000,
-      aggregateTimeout: 300,
-    }
-    
-    return config
-  },
+  webpack(config, options) {
+    config.resolve.modules.push(path.resolve("./"));
+    return config;
+  }
 }

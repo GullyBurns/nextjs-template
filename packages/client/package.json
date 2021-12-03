@@ -1,6 +1,6 @@
 {
-  "name": "with-typescript",
-  "version": "1.0.0",
+  "name": "dockerized-nextjs-material-dashboard",
+  "version": "0.0.1",
   "scripts": {
     "dev": "next",
     "build": "next build",
@@ -9,25 +9,43 @@
     "lint": "eslint **/**",
     "lint:fix": "eslint **/** --fix",
     "test": "NODE_ENV=test jest --passWithNoTests --watch",
-    "test:ci": "NODE_ENV=test jest --passWithNoTests"
+    "test:ci": "NODE_ENV=test jest --passWithNoTests",
+    "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && rm -rf .next/ && npm install && npm run dev"
   },
   "dependencies": {
     "dotenv": "^10.0.0",
-    "isomorphic-unfetch": "^3.1.0",
-    "jest": "^27.3.1",
-    "next": "^12.0.4",
-    "path": "^0.12.7",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "@material-ui/core": "4.11.3",
+    "@material-ui/icons": "4.11.2",
+    "chartist": "^0.10.1",
+    "classnames": "2.3.1",
+    "history": "5.1.0",
+    "next": "12.0.4",
+    "next-compose-plugins": "2.2.1",
+    "next-images": "1.8.4",
+    "path": "0.12.7",
+    "perfect-scrollbar": "1.5.3",
+    "prop-types": "15.7.2",
+    "react": "17.0.2",
+    "react-chartist": "0.14.4",
+    "react-dom": "17.0.2",
+    "react-swipeable-views": "0.14.0",
+    "sass": "^1.44.0"
   },
-  "devDependencies": {
-    "@types/node": "^16.11.10",
-    "@types/react": "^17.0.36",
-    "@types/react-dom": "^17.0.11",
-    "eslint": "^7.2.0",
-    "eslint-config-airbnb-typescript-prettier": "^4.2.0",
-    "prettier": "^2.4.1",
-    "typescript": "^4.5.2"
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   },
-  "license": "ISC"
+  "optionalDependencies": {
+    "typescript": "4.1.3"
+  },
+
+  "license": "MIT"
 }
