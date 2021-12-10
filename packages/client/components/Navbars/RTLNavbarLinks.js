@@ -60,7 +60,7 @@ export default function RTLNavbarLinks() {
         color={size.width > 959 ? "transparent" : "white"}
         justIcon={size.width > 959}
         simple={!(size.width > 959)}
-        aria-label="Dashboard"
+        aria-label="Disease Research State Dashboard"
         className={classes.buttonLink}
       >
         <Dashboard className={classes.icons} />

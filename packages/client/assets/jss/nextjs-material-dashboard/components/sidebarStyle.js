@@ -94,9 +94,9 @@ const sidebarStyle = (theme) => ({
     textAlign: "right",
   },
   logoImage: {
-    width: "30px",
+    width: "1500px",
     display: "inline-block",
-    maxHeight: "30px",
+    maxHeight: "150px",
     marginLeft: "10px",
     marginRight: "15px",
   },

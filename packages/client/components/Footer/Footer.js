@@ -17,38 +17,20 @@ export default function Footer(props) {
         <div className={classes.left}>
           <List className={classes.list}>
             <ListItem className={classes.inlineBlock}>
-              <a href="#home" className={classes.block}>
-                Home
+              <a href="https://www.chanzuckerberg.com/">
+                CZI
               </a>
             </ListItem>
             <ListItem className={classes.inlineBlock}>
-              <a href="#company" className={classes.block}>
-                Company
-              </a>
-            </ListItem>
-            <ListItem className={classes.inlineBlock}>
-              <a href="#portfolio" className={classes.block}>
-                Portfolio
-              </a>
-            </ListItem>
-            <ListItem className={classes.inlineBlock}>
-              <a href="#blog" className={classes.block}>
-                Blog
+              <a href="https://chanzuckerberg.com/science/programs-resources/rare-as-one/">
+                Rare as One
               </a>
             </ListItem>
           </List>
         </div>
         <p className={classes.right}>
           <span>
-            &copy; {1900 + new Date().getYear()}{" "}
-            <a
-              href="https://www.creative-tim.com?ref=njsmd-footer"
-              target="_blank"
-              className={classes.a}
-            >
-              Creative Tim
-            </a>
-            , made with love for a better web
+            A Future for Everyone
           </span>
         </p>
       </div>

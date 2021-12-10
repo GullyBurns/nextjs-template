@@ -14,12 +14,17 @@
   },
   "dependencies": {
     "dotenv": "^10.0.0",
-    "@material-ui/core": "4.11.3",
-    "@material-ui/icons": "4.11.2",
+    "@emotion/css": "latest",
+    "@emotion/react": "latest",
+    "@emotion/styled": "latest",
+    "@material-ui/core": "latest",
+    "@material-ui/icons": "latest",
+    "@material-ui/lab": "latest",
     "chartist": "^0.10.1",
     "classnames": "2.3.1",
+    "csv-loader": "latest",
     "history": "5.1.0",
-    "next": "12.0.4",
+    "next": "latest",
     "next-compose-plugins": "2.2.1",
     "next-images": "1.8.4",
     "path": "0.12.7",
@@ -29,7 +34,11 @@
     "react-chartist": "0.14.4",
     "react-dom": "17.0.2",
     "react-swipeable-views": "0.14.0",
-    "sass": "^1.44.0"
+    "sass": "^1.44.0",
+    "d3": "^7.2.0",
+    "d3-fetch": "^3.0.1",
+    "@types/d3": "^7.1.0",
+    "react-papaparse": "^3.18.1"
   },
   "browserslist": {
     "production": [
