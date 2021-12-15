@@ -29,6 +29,14 @@ def test_response():
 
     return response
 
+@app.route('/api/read/<disease_name>/<data_set>', methods=['GET'])
+def read_tsv(disease_name, data_set):
+    temp_df = pd.read_csv('data/'+disease_name+'/'+data_set+'.tsv', sep='\t')
+    temp_df = temp_df.fillna('')
+    data = temp_df.to_dict('records')
+    response = make_response(jsonify(data))
+    return response
+
 @app.route('/api/ALS/claims', methods=['GET'])
 def serve_claims_data():
     """Return a sample JSON response."""

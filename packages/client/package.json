@@ -20,6 +20,8 @@
     "@material-ui/core": "latest",
     "@material-ui/icons": "latest",
     "@material-ui/lab": "latest",
+    "@mui/x-data-grid": "latest",
+    "@mui/material": "latest",
     "chartist": "^0.10.1",
     "classnames": "2.3.1",
     "csv-loader": "latest",

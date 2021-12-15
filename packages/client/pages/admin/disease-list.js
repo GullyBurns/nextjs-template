@@ -1,21 +1,13 @@
-import React from "react";
+import {React, useState, useEffect, useLayoutEffect } from 'react'
+
 // react plugin for creating charts
 import ChartistGraph from "react-chartist";
 // @material-ui/core
 import { makeStyles } from "@material-ui/core/styles";
 import Icon from "@material-ui/core/Icon";
 // @material-ui/icons
-import Store from "@material-ui/icons/Store";
-import Warning from "@material-ui/icons/Warning";
-import DateRange from "@material-ui/icons/DateRange";
-import LocalOffer from "@material-ui/icons/LocalOffer";
-import Update from "@material-ui/icons/Update";
-import ArrowUpward from "@material-ui/icons/ArrowUpward";
-import AccessTime from "@material-ui/icons/AccessTime";
-import Accessibility from "@material-ui/icons/Accessibility";
-import BugReport from "@material-ui/icons/BugReport";
-import Code from "@material-ui/icons/Code";
-import Cloud from "@material-ui/icons/Cloud";
+import { DataGrid,GridColDef } from '@mui/x-data-grid';
+
 // layout for this page
 import Admin from "layouts/Admin.js";
 // core components
@@ -30,7 +22,7 @@ import CardHeader from "components/Card/CardHeader.js";
 import CardIcon from "components/Card/CardIcon.js";
 import CardBody from "components/Card/CardBody.js";
 import CardFooter from "components/Card/CardFooter.js";
-import { DataGrid } from '@mui/x-data-grid';
+
 
 import { bugs, website, server } from "variables/general.js";
 
@@ -42,11 +34,47 @@ import {
 
 import styles from "assets/jss/nextjs-material-dashboard/views/dashboardStyle.js";
 
-function DiseaseList({rao_cycle0, rao_cycle1, rao_cycle2}) {
+function DiseaseList({rao_group_data}) {
   const useStyles = makeStyles(styles);
   const classes = useStyles();
 
-  console.log(rao_cycle0.headings)
+  const columns = [
+    { field: 'id', headerName: 'ID', width: 60 },
+    {
+      field: 'Disease Name',
+      headerName: 'Disease Name',
+      width: 450,
+      editable: false,
+    },
+    {
+      field: 'MONDO CODES',
+      headerName: 'MONDO CODES',
+      width: 300,
+      editable: false,
+    },
+    {
+      field: 'Cycle',
+      headerName: 'Cycle',
+      type: 'number',
+      width: 60,
+      editable: false,
+    }
+  ];
+
+  // Setting diseaseId for this page from the control.
+  const [diseaseId, setDiseaseId] = useState(-1);
+
+  // Storing/Retrieving the diseaseId in sessionStorage.
+  useEffect(() => {
+    sessionStorage.setItem('diseaseId', diseaseId.toString())
+  }, [diseaseId])
+  useLayoutEffect(() => {
+    if (sessionStorage.getItem('diseaseId')) {
+      setDiseaseId(parseInt(sessionStorage.getItem('diseaseId')))
+    } else {
+      sessionStorage.setItem('diseaseId', diseaseId.toString())
+    }
+  }, [])
 
   return (
     <div>
@@ -54,68 +82,37 @@ function DiseaseList({rao_cycle0, rao_cycle1, rao_cycle2}) {
       <GridItem xs={12} sm={12} md={12}>
         <Card>
           <CardHeader color="primary">
-            <h4 className={classes.cardTitleWhite}>Rare as One 'Cycle Zero' </h4>
+            <h4 className={classes.cardTitleWhite}>Rare as One Diseases </h4>
             <p className={classes.cardCategoryWhite}>
-              Patient organizations that provided initial inspiration for the
-                Rare as One program.
+              All diseases of direct interest to the Rare as One program,
+              either as diseases of interest to members of the research network
+              of for the extended Rare As One team.
             </p>
           </CardHeader>
           <CardBody>
-            <Table
-                tableHeaderColor="primary"
-                tableHead={rao_cycle0.headings}
-                tableData={rao_cycle0.table}
+            <p>{diseaseId}</p>
+          <div style={{ height: 800, width: '100%' }}>
+            <DataGrid
+              rows={rao_group_data}
+              columns={columns}
+              pageSize={25}
+              rowsPerPageOptions={[25]}
+              onSelectionModelChange={(ids) => setDiseaseId(ids)}
             />
+          </div>
           </CardBody>
         </Card>
-        <Card>
-          <CardHeader color="primary">
-            <h4 className={classes.cardTitleWhite}>Rare as One 'Cycle One' </h4>
-            <p className={classes.cardCategoryWhite}>
-              Patient organizations from the Rare as One, cycle one cohort.
-            </p>
-          </CardHeader>
-          <CardBody>
-            <Table
-                tableHeaderColor="primary"
-                tableHead={rao_cycle1.headings}
-                tableData={rao_cycle1.table}
-            />
-          </CardBody>
-        </Card>
-        <Card>
-          <CardHeader color="primary">
-            <h4 className={classes.cardTitleWhite}>Rare as One 'Cycle Two' </h4>
-            <p className={classes.cardCategoryWhite}>
-              Patient organizations from the Rare as One cycle two cohort.
-            </p>
-          </CardHeader>
-          <CardBody>
-            <Table
-                tableHeaderColor="primary"
-                tableHead={rao_cycle2.headings}
-                tableData={rao_cycle2.table}
-            />
-          </CardBody>
-        </Card>
-
       </GridItem>
     </GridContainer>
     </div>
   );
 }
 
-import {getTsvDataFromDisk} from "variables/tables.js";
-import CustomTable from "../../components/Table/Table";
-export async function getStaticProps() {
-  const allTsvData = getTsvDataFromDisk('data/disease_list')
-  return {
-    props: {
-        'rao_cycle0': allTsvData[0],
-        'rao_cycle1': allTsvData[1],
-        'rao_cycle2': allTsvData[2],
-    }
-  }
+import {MyD3Component} from "../../components/D3/MyD3Component";
+export async function getServerSideProps() {
+  const res = await fetch(`http://10.0.0.188:5001/api/read/RaO/rao_groups`)
+  const rao_group_data = await res.json()
+  return { props: { rao_group_data } }
 }
 
 DiseaseList.layout = Admin;

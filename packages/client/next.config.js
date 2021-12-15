@@ -14,7 +14,7 @@ module.exports = {
           header: true,
           skipEmptyLines: true
         }
-    })
+    });
     return config;
   }
 }

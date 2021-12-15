@@ -1,0 +1,57 @@
+id	Disease Name	MONDO CODES	Cycle
+0	Primary Ciliary Dyskinesia	MONDO:0016575	0
+1	Type 2 Neurofibromatosis	MONDO:0007039	0
+2	Chordoma	MONDO:0008978	0
+3	Castleman Disease	MONDO:0015564	0
+4	Amyotrophic lateral sclerosis	MONDO:0004976	0
+5	Adult Polyglucosan Body Disease	MONDO:0009897	1
+6	Cerebral Creatine Deficiency Syndromes	MONDO:0010305|MONDO:0012999|MONDO:0012996	1
+7	CLOVES Syndrome	MONDO:0013038	1
+8	Congenital Hyperinsulinism	MONDO:0017182	1
+9	Chronic Recurrent Multifocal Osteomyelitis	MONDO:0009813	1
+10	Congenital Muscular Dystrophy	MONDO:0019950	1
+11	Hereditary Hemorrhagic Telangiectasia	MONDO:0019180	1
+12	GRIN gene	MONDO:0013655|MONDO:0017325|MONDO:0009509|MONDO:0014505|MONDO:0013509|MONDO:0014947	1
+13	Deficiency of Adenosine Deaminase 2 	MONDO:0013028	1
+14	DDX3X Syndrome	MONDO:0010497	1
+15	Fibrolamellar hepatocellular carcinoma	MONDO:0006210	1
+16	Glut1 Deficiency	MONDO:0000188	1
+17	Hermansky-Pudlak Syndrome	MONDO:0019312	1
+18	Infantile Neuroaxonal Dystrophy	MONDO:0009739	1
+19	KAT6A Syndrome	MONDO:0014558	1
+20	KIF1A Associated Neurological Disorder	MONDO:0013656|MONDO:0013634|MONDO:0012476	1
+21	Lennox-Gastaut Syndrome	MONDO:0016532	1
+22	Li-Fraumeni Syndrome	MONDO:0018875	1
+23	Complex Lymphatic Anomalies	MONDO:0007414|MONDO:0018736|MONDO:0015408	1
+24	Necrotizing enterocolitis	MONDO:0005313	1
+25	Chromosome 8P disorders	MONDO:0017013|MONDO:0019876|MONDO:0016890|MONDO:0011280|MONDO:0008365	1
+26	Primary sclerosing cholangitis	MONDO:0013433	1
+27	Systemic Juvenile Idiopathic Arthritis	MONDO:0019434	1
+28	TANGO2-Related Metabolic Encephalopathy and Arrhythmias	MONDO:0018820	1
+29	SLC13A5 Deficiency	MONDO:0014392|MONDO:0014392|	1
+30	Pearson Syndrome	MONDO:0010797|MONDO:0016797	1
+31	Epithelioid Hemangioendothelioma	MONDO:0015523	1
+32	Snyder-Robinson Syndrome	MONDO:0010664	1
+33	4H Leukodystrophy	MONDO:0019505	1
+34	Usher Syndrome type 1F	MONDO:0011186	1
+35	Recurrent Respiratory Papillomatosis	MONDO:0018955	2
+36	Lafora Disease	MONDO:0009697	2
+37	Stiff Person Syndrome	MONDO:0008491	2
+38	TBCK Syndrome   	MONDO:0014823	2
+39	Shwachman-Diamond Syndrome	MONDO:0009833	2
+40	Tatton Brown Rahman Syndrome	MONDO:0014382	2
+41	Smith-Kingsmore syndrome	MONDO:0014716	2
+42	VCP disease 	MONDO:0018006	2
+43	Dyskeratosis congenita	MONDO:0015780	2
+44	Telomere biology disorders	MONDO:0100137	2
+45	Craniopharyngioma	MONDO:0018907	2
+46	PACS1 syndrome	MONDO:0014006	2
+47	CACNA1A-related disorders	MONDO:0014917	2
+48	Progressive Familial Intrahepatic Cholestasis	MONDO:0015762	2
+49	Nemaline Myopathy	MONDO:0018958	2
+50	LBSL	MONDO:0012622	2
+51	Hereditary pancreatitis	MONDO:0008185	2
+52	Cerebral cavernous malformation	MONDO:0000820	2
+53	Primary Ciliary Dyskinesia	MONDO:0016575	2
+54	SCN2A-related disorders	MONDO:0011904,MONDO:0013388	2
+55	Sarcoidosis	MONDO:0019338	2

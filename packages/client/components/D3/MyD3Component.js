@@ -13,7 +13,7 @@ export const MyD3Component = (props) => {
        for instance inserting elements into the DOM using D3 */
     useEffect(
         () => {
-            if (props.data && d3Container.current) {
+            if (props.data &&  d3Container.current) {
                 const svg = d3.select(d3Container.current);
 
                 // Bind D3 data
