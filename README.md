@@ -4,11 +4,12 @@
 
 ##  Acknowledgements and Purpose 
 
-This template was constructed from two simple boilerplate GitHub projects to provide 
+This template was constructed from three boilerplate GitHub projects to provide 
 a simple NextJS client on top of a Flask python backend.  
  
 * https://github.com/KumarAbhirup/dockerized
 * https://github.com/GullyBurns/react-flask-docker-boilerplate
+* https://github.com/creativetimofficial/material-dashboard
 
 This application is intended to provide a useful starting point for research prototyping 
 based on pythonic data science with full data-visualization capabiliities derived from
