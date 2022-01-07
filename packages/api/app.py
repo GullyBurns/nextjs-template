@@ -5,7 +5,7 @@ import pandas as pd
 # create and configure the app
 app = Flask(__name__)
 
-df = pd.read_csv('data/ALS/sent_claims_db.tsv', sep='\t')
+df = pd.read_csv('data/ALS/claim_clusters.tsv', sep='\t')
 df = df.fillna('')
 
 @app.route('/api/v1.0/test', methods=['GET'])

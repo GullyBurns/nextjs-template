@@ -23,7 +23,6 @@ import CardIcon from "components/Card/CardIcon.js";
 import CardBody from "components/Card/CardBody.js";
 import CardFooter from "components/Card/CardFooter.js";
 
-
 import { bugs, website, server } from "variables/general.js";
 
 import {
@@ -110,7 +109,7 @@ function DiseaseList({rao_group_data}) {
 
 import {MyD3Component} from "../../components/D3/MyD3Component";
 export async function getServerSideProps() {
-  const res = await fetch(`http://10.0.0.188:5001/api/read/RaO/rao_groups`)
+  const res = await fetch(`http://10.0.0.184:5001/api/read/RaO/rao_groups`)
   const rao_group_data = await res.json()
   return { props: { rao_group_data } }
 }

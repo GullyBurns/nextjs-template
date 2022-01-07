@@ -97,7 +97,7 @@ function Dashboard({headings, data}) {
 
 import {MyD3Component} from "../../components/D3/MyD3Component";
 export async function getServerSideProps() {
-  const res = await fetch(`http://10.0.0.188:5001/api/ALS/claims`)
+  const res = await fetch(`http://10.0.0.184:5001/api/ALS/claims`)
   const allData = await res.json()
   const headings = Object.keys(allData[0])
   const data = allData.map(x => Object.values(x));
