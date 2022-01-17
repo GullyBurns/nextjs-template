@@ -53,7 +53,7 @@ function Dashboard({headings, data}) {
       <GridContainer>
       <GridItem xs={12} sm={12} md={12}>
           <Card>
-          <CardHeader color="primary">
+          <CardHeader color="red">
             <h4 className={classes.cardTitleWhite}>D3 Visualizations</h4>
             <p className={classes.cardCategoryWhite}>
               Time to drive the work

@@ -47,6 +47,7 @@ function Dashboard({headings, data}) {
   const classes = useStyles();
 
   //console.log(allData.headings)
+  const corpora = useSelector((state) => state.corpus)
 
   return (
     <div>
@@ -71,6 +72,7 @@ function Dashboard({headings, data}) {
             </p>
           </CardHeader>
           <CardBody>
+              <p>{corpora.corpus_list.length}</p>
             <Table
                 tableHeaderColor="primary"
                 tableHead={headings}
@@ -96,6 +98,7 @@ function Dashboard({headings, data}) {
 //}
 
 import {MyD3Component} from "../../components/D3/MyD3Component";
+import {useSelector} from "react-redux";
 export async function getServerSideProps() {
   const res = await fetch(`http://10.0.0.184:5001/api/ALS/claims`)
   const allData = await res.json()

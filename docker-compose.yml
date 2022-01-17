@@ -7,9 +7,17 @@ services:
     volumes:
       - ./packages/api:/backend
       - /Users/gburns/Documents/2021H1:/data
+      - /Users/gburns/.ssh:/ssh
     environment:
       - FLASK_ENV=development
       - FLASK_APP=app.py
+      - SF_LOGIN=gully.burns@chanzuckerberg.com
+      - SF_KEY_FILE=/ssh/rsa_key.p8
+      - SF_PASSPHRASE=Litgt
+      - SF_PREFIX=RESEARCH_THREAD_DEMO_
+      - SF_DATABASE=DEV_DB
+      - SF_SCHEMA=SKE
+      - SF_ROLE=ARST_TEAM
     ports:
       - 5001:5000
   nextjs:

@@ -3,6 +3,7 @@ import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 // layout for this page
 import Admin from "layouts/Admin.js";
+import { useSelector } from 'react-redux'
 // core components
 import Quote from "components/Typography/Quote.js";
 import Muted from "components/Typography/Muted.js";
@@ -55,6 +56,9 @@ const styles = {
 function TypographyPage() {
   const useStyles = makeStyles(styles);
   const classes = useStyles();
+  const corpora = useSelector((state) => state.corpus)
+  console.log(corpora.corpus_list)
+
   return (
     <Card>
       <CardHeader color="primary">

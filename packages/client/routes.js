@@ -28,20 +28,20 @@ import Language from "@material-ui/icons/Language";
 const dashboardRoutes = [
   {
     path: "/disease-list",
-    name: "Disease List",
+    name: "Disease Research State",
     icon: "health_and_safety",
     layout: "/admin",
   },
   {
-    path: "/dashboard",
-    name: "Dashboard",
-    icon: Dashboard,
+    path: "/researchers",
+    name: "Researchers",
+    icon: Person,
     layout: "/admin",
   },
   {
-    path: "/maps",
-    name: "Disease Research State",
-    icon: LocationOn,
+    path: "/papers",
+    name: "Papers",
+    icon: LibraryBooks,
     layout: "/admin",
   },
   {
@@ -49,7 +49,7 @@ const dashboardRoutes = [
     name: "Claim Clusters / Topics",
     icon: BubbleChart,
     layout: "/admin",
-  },
+  }
 ];
 
 export default dashboardRoutes;

@@ -15,7 +15,7 @@ WORKDIR /frontend
 
 # Installing dependencies
 COPY package*.json /frontend
-RUN npm  cache clear --force
+RUN npm cache clear --force
 RUN npm install
 
 # Copying source files

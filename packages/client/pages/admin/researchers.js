@@ -1,7 +1,8 @@
-import {React, useState, useCallback } from 'react'
+import {React, useState, useEffect, useLayoutEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import {fetch_corpus_list, select_corpus_id, set_corpus_list} from '../../features/corpusSlice'
 
+import Link from 'next/link'
 // react plugin for creating charts
 import ChartistGraph from "react-chartist";
 // @material-ui/core
@@ -12,7 +13,6 @@ import {DataGrid, GridColDef, GridRenderCellParams} from '@mui/x-data-grid';
 
 // layout for this page
 import Admin from "layouts/Admin.js";
-
 // core components
 import GridItem from "components/Grid/GridItem.js";
 import GridContainer from "components/Grid/GridContainer.js";
@@ -36,14 +36,17 @@ import {
 
 import styles from "assets/jss/nextjs-material-dashboard/views/dashboardStyle.js";
 
-function DiseaseList({list_corpora}) {
+function ResearcherPage() {
   const useStyles = makeStyles(styles);
   const classes = useStyles();
 
-  // HANDLE DATA UPDATES INTO STATE
   const dispatch = useDispatch()
-  dispatch(set_corpus_list(list_corpora))
-  const corpora = useSelector((state) => state.corpus)
+  //{CORPUS_NAME: 'BLAH Ciliary Dyskinesia',MONDO_CODES: 'MONDO:0016575', OA_PAPER_COUNT: 960, PAPER_COUNT: 2539, id: '0'},
+//    {CORPUS_NAME: 'Fibrolamellar hepatocellular carcinoma', MONDO_CODES: 'MONDO:0006210', OA_PAPER_COUNT: 244, PAPER_COUNT: 811, id: '14'},
+//      {CORPUS_NAME: 'Primary sclerosing cholangitis', MONDO_CODES: 'MONDO:0013433', OA_PAPER_COUNT: 1795, PAPER_COUNT: 5334, id: '25'},
+//     {CORPUS_NAME: 'Amyotrophic lateral sclerosis', MONDO_CODES: 'MONDO:0004976', OA_PAPER_COUNT: 25508, PAPER_COUNT: 57964, id: '34'}]
+
+  dispatch(set_corpus_list(10))
 
   const columns = [
     {
@@ -83,22 +86,17 @@ function DiseaseList({list_corpora}) {
   // Setting diseaseId for this page from the control.
   const [diseaseId, setDiseaseId] = useState(-1);
 
-  const handleSelectionModelChange = id => {
-    console.log('CLICK')
-    dispatch( select_corpus_id(id) )
-  }
-
   // Storing/Retrieving the diseaseId in sessionStorage.
-  //useEffect(() => {
-  //  sessionStorage.setItem('diseaseId', diseaseId.toString())
-  //}, [diseaseId])
-  //useLayoutEffect(() => {
-  //  if (sessionStorage.getItem('diseaseId')) {
-  //    setDiseaseId(parseInt(sessionStorage.getItem('diseaseId')))
-  //  } else {
-  //    sessionStorage.setItem('diseaseId', diseaseId.toString())
-  //  }
-  //}, [])
+  useEffect(() => {
+    sessionStorage.setItem('diseaseId', diseaseId.toString())
+  }, [diseaseId])
+  useLayoutEffect(() => {
+    if (sessionStorage.getItem('diseaseId')) {
+      setDiseaseId(parseInt(sessionStorage.getItem('diseaseId')))
+    } else {
+      sessionStorage.setItem('diseaseId', diseaseId.toString())
+    }
+  }, [])
 
   return (
     <div>
@@ -113,14 +111,7 @@ function DiseaseList({list_corpora}) {
           </CardHeader>
           <CardBody>
           <div style={{ height: 320, width: '100%' }}>
-            <p>{corpora.corpus_id}</p>
-            <DataGrid
-              rows={corpora.corpus_list}
-              columns={columns}
-              pageSize={25}
-              rowsPerPageOptions={[25]}
-              onSelectionModelChange={handleSelectionModelChange}
-            />
+
           </div>
           </CardBody>
         </Card>
@@ -130,16 +121,13 @@ function DiseaseList({list_corpora}) {
   );
 }
 
-// SHOULD BE DOING THIS WITH DISPATCHING SERVER SIDE EVENTS
-// BUT CANNOT GET THE createAsyncThunk call CALL TO EXECUTE WITHOUT
-// TRIGGERING AN ERROR - SAVE AS PLACEHOLDER AND KEEP INTERACTION
-// VIA SERVER SIDE PROPS + SIMPLE DISPATCH FOR
-export async function getServerSideProps() {
-  const res = await fetch(`http://10.0.0.184:5001/api/list_corpora`)
-  const list_corpora = await res.json()
-  return { props: { list_corpora } }
-}
+import {MyD3Component} from "../../components/D3/MyD3Component";
+//export async function getServerSideProps() {
+//  const res = await fetch(`http://10.0.0.184:5001/api/list_authors/{corpusId}/25/0`)
+//  const researcher_data = await res.json()
+//  return { props: { researcher_data } }
+//}
 
-DiseaseList.layout = Admin;
+ResearcherPage.layout = Admin;
 
-export default DiseaseList;
+export default ResearcherPage;

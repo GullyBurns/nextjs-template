@@ -17,13 +17,14 @@
 */
 import React from "react";
 import ReactDOM from "react-dom";
-import App from "next/app";
 import Head from "next/head";
 import Router from "next/router";
+import {store} from "../store";
 
 import PageChange from "components/PageChange/PageChange.js";
 
 import "assets/css/nextjs-material-dashboard.css?v=1.1.0";
+import {Provider} from "react-redux";
 
 Router.events.on("routeChangeStart", (url) => {
   console.log(`Loading: ${url}`);
@@ -42,7 +43,11 @@ Router.events.on("routeChangeError", () => {
   document.body.classList.remove("body-page-transition");
 });
 
-export default class MyApp extends App {
+//
+// Adding REDUX code to wrap application with store code
+// edits based on https://github.com/kirill-konshin/next-redux-wrapper#installation
+//
+class MyApp extends React.Component {
   componentDidMount() {
     let comment = document.createComment(`
 
@@ -65,33 +70,34 @@ export default class MyApp extends App {
   }
   static async getInitialProps({ Component, router, ctx }) {
     let pageProps = {};
-
     if (Component.getInitialProps) {
       pageProps = await Component.getInitialProps(ctx);
     }
-
     return { pageProps };
   }
   render() {
     const { Component, pageProps } = this.props;
-
     const Layout = Component.layout || (({ children }) => <>{children}</>);
-
     return (
-      <React.Fragment>
-        <Head>
-          <meta name="viewport"
-            content="width=device-width, initial-scale=1, shrink-to-fit=no"
-          />
-          <link rel="icon" type="image/jpg" sizes="32x32" href="/img/favicon.jpg"/>
-          <title>Disease Research State Dashboard</title>
-          <link rel="preconnect" href="https://fonts.gstatic.com" />
-          <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,600;1,700&display=swap" rel="stylesheet"/>
-        </Head>
-        <Layout>
-          <Component {...pageProps} />
-        </Layout>
-      </React.Fragment>
+        <Provider store={store}>
+          <React.Fragment>
+            <Head>
+              <meta name="viewport"
+                content="width=device-width, initial-scale=1, shrink-to-fit=no"
+              />
+              <link rel="icon" type="image/jpg" sizes="32x32" href="/img/favicon.jpg"/>
+              <title>Disease Research State Dashboard</title>
+              <link rel="preconnect" href="https://fonts.gstatic.com" />
+              <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,600;1,700&display=swap" rel="stylesheet"/>
+            </Head>
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+          </React.Fragment>
+        </Provider>
     );
   }
 }
+
+//export default wrapper.withRedux(MyApp);
+export default MyApp;
