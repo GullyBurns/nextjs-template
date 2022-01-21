@@ -1,6 +1,7 @@
-import {React, useState, useCallback } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import {fetch_corpus_list, select_corpus_id, set_corpus_list} from '../../features/corpusSlice'
+import {React, useState, useCallback, useEffect} from 'react'
+import { useDispatch, useSelector } from 'react-redux';
+import {getCorpusList, selectCorpusId} from "../../features/corpus";
+import {wrapper} from "../../app/store";
 
 // react plugin for creating charts
 import ChartistGraph from "react-chartist";
@@ -36,91 +37,64 @@ import {
 
 import styles from "assets/jss/nextjs-material-dashboard/views/dashboardStyle.js";
 
-function DiseaseList({list_corpora}) {
+function CorpusDashboard() {
   const useStyles = makeStyles(styles);
   const classes = useStyles();
 
   // HANDLE DATA UPDATES INTO STATE
-  const dispatch = useDispatch()
-  dispatch(set_corpus_list(list_corpora))
-  const corpora = useSelector((state) => state.corpus)
-
-  const columns = [
+  const dispatch = useDispatch();
+  const { data, pending, error } = useSelector((state) => state.corpus);
+  const authorListColumns = [
     {
-      field: 'CORPUS_NAME',
-      headerName: 'Disease Name',
-      width: 450,
+      field: 'author_name',
+      headerName: 'Author Name',
+      width: 300,
       editable: false,
     },
     {
-      field: 'MONDO_CODES',
-      headerName: 'LINKS',
+      field: 'id_orcid',
+      headerName: 'ORCID',
       width: 300,
       editable: false,
       renderCell: (params)=>(
           <a
-              href={`https://monarchinitiative.org/disease/${params.value}`}
+              href={`https://orcid.org/${params.value}`}
               target="_blank"
           >{params.value}</a>
       )
     },
     {
-      field: 'PAPER_COUNT',
-      headerName: '# Papers',
+      field: 'normalized_citation_count',
+      headerName: 'Normalized Citations',
       type: 'number',
-      width: 120,
-      editable: false,
-    },
-    {
-      field: 'OA_PAPER_COUNT',
-      headerName: '# OA Papers',
-      type: 'number',
-      width: 120,
+      width: 180,
       editable: false,
     }
   ];
 
-  // Setting diseaseId for this page from the control.
-  const [diseaseId, setDiseaseId] = useState(-1);
-
-  const handleSelectionModelChange = id => {
-    console.log('CLICK')
-    dispatch( select_corpus_id(id) )
-  }
-
-  // Storing/Retrieving the diseaseId in sessionStorage.
-  //useEffect(() => {
-  //  sessionStorage.setItem('diseaseId', diseaseId.toString())
-  //}, [diseaseId])
-  //useLayoutEffect(() => {
-  //  if (sessionStorage.getItem('diseaseId')) {
-  //    setDiseaseId(parseInt(sessionStorage.getItem('diseaseId')))
-  //  } else {
-  //    sessionStorage.setItem('diseaseId', diseaseId.toString())
-  //  }
-  //}, [])
-
   return (
     <div>
       <GridContainer>
-      <GridItem xs={12} sm={12} md={12}>
+        <GridItem xs={12} sm={12} md={12}>
         <Card>
           <CardHeader color="danger">
-            <h4 className={classes.cardTitleWhite}>Disease List </h4>
+            <h4 className={classes.cardTitleWhite}>Author List </h4>
             <p className={classes.cardCategoryWhite}>
-              Select a disease to investigate.
+              Tabulate Authors.
             </p>
           </CardHeader>
           <CardBody>
           <div style={{ height: 320, width: '100%' }}>
-            <p>{corpora.corpus_id}</p>
-            <DataGrid
-              rows={corpora.corpus_list}
-              columns={columns}
+            {pending && <p>Loading...</p>}
+            {data &&
+              <DataGrid
+              rows={data.authorList}
+              columns={authorListColumns}
               pageSize={25}
               rowsPerPageOptions={[25]}
-              onSelectionModelChange={handleSelectionModelChange}
-            />
+              />
+            }
+            {error && <p>Oops, something went wrong</p>}
           </div>
           </CardBody>
         </Card>
@@ -130,16 +104,13 @@ function DiseaseList({list_corpora}) {
   );
 }
 
-// SHOULD BE DOING THIS WITH DISPATCHING SERVER SIDE EVENTS
-// BUT CANNOT GET THE createAsyncThunk call CALL TO EXECUTE WITHOUT
-// TRIGGERING AN ERROR - SAVE AS PLACEHOLDER AND KEEP INTERACTION
-// VIA SERVER SIDE PROPS + SIMPLE DISPATCH FOR
-export async function getServerSideProps() {
-  const res = await fetch(`http://10.0.0.184:5001/api/list_corpora`)
-  const list_corpora = await res.json()
-  return { props: { list_corpora } }
-}
+CorpusDashboard.getInitialProps = wrapper.getInitialPageProps(
+  ({ dispatch }) =>
+    async () => {
+      await dispatch(getCorpusList());
+    }
+);
 
-DiseaseList.layout = Admin;
+CorpusDashboard.layout = Admin;
 
-export default DiseaseList;
+export default CorpusDashboard;

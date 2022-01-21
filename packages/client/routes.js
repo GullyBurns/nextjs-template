@@ -28,22 +28,22 @@ import Language from "@material-ui/icons/Language";
 const dashboardRoutes = [
   {
     path: "/disease-list",
-    name: "Disease Research State",
-    icon: "health_and_safety",
+    name: "Dashboard",
+    icon: Dashboard,
     layout: "/admin",
   },
-  {
-    path: "/researchers",
-    name: "Researchers",
-    icon: Person,
-    layout: "/admin",
-  },
-  {
-    path: "/papers",
-    name: "Papers",
-    icon: LibraryBooks,
-    layout: "/admin",
-  },
+//  {
+//    path: "/researchers",
+//    name: "Researchers",
+//    icon: Person,
+//    layout: "/admin",
+//  },
+//  {
+//    path: "/papers",
+//    name: "Papers",
+//    icon: LibraryBooks,
+//    layout: "/admin",
+//  },
   {
     path: "/claims",
     name: "Claim Clusters / Topics",

@@ -19,12 +19,20 @@ import Search from "@material-ui/icons/Search";
 import CustomInput from "components/CustomInput/CustomInput.js";
 import Button from "components/CustomButtons/Button.js";
 import useWindowSize from "components/Hooks/useWindowSize.js";
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
 
 import styles from "assets/jss/nextjs-material-dashboard/components/headerLinksStyle.js";
+import {useDispatch, useSelector} from "react-redux";
+import {wrapper} from "../../app/store";
+import {getCorpusList, selectCorpusId} from "../../features/corpus";
 
 export default function AdminNavbarLinks() {
   const size = useWindowSize();
   const useStyles = makeStyles(styles);
+  const dispatch = useDispatch();
+  const { data, pending, error } = useSelector((state) => state.corpus);
   const classes = useStyles();
   const [openNotification, setOpenNotification] = React.useState(null);
   const [openProfile, setOpenProfile] = React.useState(null);
@@ -48,24 +56,29 @@ export default function AdminNavbarLinks() {
   const handleCloseProfile = () => {
     setOpenProfile(null);
   };
+  const handleCorpusSelectionChange = (event, value, reason, details) => {
+    if(value || value==0) {
+      dispatch(selectCorpusId(value.id))
+    }
+  }
   return (
     <div>
-      <div className={classes.searchWrapper}>
-        <CustomInput
-          formControlProps={{
-            className: classes.margin + " " + classes.search,
-          }}
-          inputProps={{
-            placeholder: "Ask a question...",
-            inputProps: {
-              "aria-label": "Search",
-            },
-          }}
-        />
-        <Button color="white" aria-label="edit" justIcon round>
-          <Search />
-        </Button>
-      </div>
+       <Autocomplete id="select-corpus"
+                     sx={{width:600}}
+                     options={data.corpusList}
+                     getOptionLabel={(option) => option.label}
+                     onChange={handleCorpusSelectionChange}
+                     clearOnEscape
+                     renderInput={(params) => (
+                         <TextField {...params} label="corpus" variant="standard" />
+                     )}
+       />
     </div>
   );
 }
+AdminNavbarLinks.getInitialProps = wrapper.getInitialPageProps(
+  ({ dispatch }) =>
+    async () => {
+      await dispatch(getCorpusList());
+    }
+);

@@ -40,6 +40,13 @@ const corpusSlice = createSlice({
       set_corpus_list(state,action) {
           state.corpus_list = action.payload
       },
+      set_author_list(state,action) {
+          state.author_list = action.payload
+      },
+      set_author_id(state,action) {
+          state.author_id = action.payload
+      },
+
   },
   // NEEDS TO BE FIXED... THIS DOES NOT WORK...
   // DO NOT CALL fetch_corpus_list

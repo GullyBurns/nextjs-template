@@ -1,6 +1,6 @@
 import {React, useState, useEffect, useLayoutEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import {fetch_corpus_list, select_corpus_id, set_corpus_list} from '../../features/corpusSlice'
+import {getAuthorList} from "../../features/corpus";
 
 import Link from 'next/link'
 // react plugin for creating charts
@@ -35,19 +35,15 @@ import {
 } from "variables/charts.js";
 
 import styles from "assets/jss/nextjs-material-dashboard/views/dashboardStyle.js";
+import {wrapper} from "../../app/store";
 
-function ResearcherPage() {
+function ResearcherList() {
   const useStyles = makeStyles(styles);
   const classes = useStyles();
 
   const dispatch = useDispatch()
-  //{CORPUS_NAME: 'BLAH Ciliary Dyskinesia',MONDO_CODES: 'MONDO:0016575', OA_PAPER_COUNT: 960, PAPER_COUNT: 2539, id: '0'},
-//    {CORPUS_NAME: 'Fibrolamellar hepatocellular carcinoma', MONDO_CODES: 'MONDO:0006210', OA_PAPER_COUNT: 244, PAPER_COUNT: 811, id: '14'},
-//      {CORPUS_NAME: 'Primary sclerosing cholangitis', MONDO_CODES: 'MONDO:0013433', OA_PAPER_COUNT: 1795, PAPER_COUNT: 5334, id: '25'},
-//     {CORPUS_NAME: 'Amyotrophic lateral sclerosis', MONDO_CODES: 'MONDO:0004976', OA_PAPER_COUNT: 25508, PAPER_COUNT: 57964, id: '34'}]
-
-  dispatch(set_corpus_list(10))
-
+  const { data, pending, error } = useSelector((state) => state.corpus);
+console.log(data)
   const columns = [
     {
       field: 'CORPUS_NAME',
@@ -86,25 +82,13 @@ function ResearcherPage() {
   // Setting diseaseId for this page from the control.
   const [diseaseId, setDiseaseId] = useState(-1);
 
-  // Storing/Retrieving the diseaseId in sessionStorage.
-  useEffect(() => {
-    sessionStorage.setItem('diseaseId', diseaseId.toString())
-  }, [diseaseId])
-  useLayoutEffect(() => {
-    if (sessionStorage.getItem('diseaseId')) {
-      setDiseaseId(parseInt(sessionStorage.getItem('diseaseId')))
-    } else {
-      sessionStorage.setItem('diseaseId', diseaseId.toString())
-    }
-  }, [])
-
   return (
     <div>
       <GridContainer>
       <GridItem xs={12} sm={12} md={12}>
         <Card>
           <CardHeader color="danger">
-            <h4 className={classes.cardTitleWhite}>Disease List </h4>
+            <h4 className={classes.cardTitleWhite}>Author List </h4>
             <p className={classes.cardCategoryWhite}>
               Select a disease to investigate.
             </p>
@@ -121,13 +105,13 @@ function ResearcherPage() {
   );
 }
 
-import {MyD3Component} from "../../components/D3/MyD3Component";
-//export async function getServerSideProps() {
-//  const res = await fetch(`http://10.0.0.184:5001/api/list_authors/{corpusId}/25/0`)
-//  const researcher_data = await res.json()
-//  return { props: { researcher_data } }
-//}
+//ResearcherList.getInitialProps =  wrapper.getInitialPageProps(
+//    ({data, dispatch}) =>
+//      async () => {
+//        await dispatch(getAuthorList(data.corpusId, 20, 0))
+//      }
+//);
 
-ResearcherPage.layout = Admin;
+ResearcherList.layout = Admin;
 
-export default ResearcherPage;
+export default ResearcherList;

@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit'
+import { Store } from 'redux';
 import corpusReducer from "./features/corpusSlice";
 import { useDispatch, useSelector } from 'react-redux'
 import {fetch_corpus_list} from 'features/corpusSlice'
@@ -9,6 +10,8 @@ export const store = configureStore({
       corpus: corpusReducer
   },
 })
+
+export const wrapper = createWrapper<Store<State>>(configureStore, {debug: true});
 
 /*store.dispatch(fetch_corpus_list())
     .then(unwrapResult)

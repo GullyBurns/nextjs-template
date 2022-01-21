@@ -13,6 +13,7 @@
     "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && rm -rf .next/ && npm install && npm run dev"
   },
   "dependencies": {
+    "czifui": "^1.6.1",
     "dotenv": "^10.0.0",
     "jsondiffpatch": "0.4.1",
     "@reduxjs/toolkit": "^1.7.1",
@@ -20,6 +21,7 @@
     "react-redux": "^7.2.6",
     "next-redux-wrapper": "^7.0.5",
     "redux-devtools-extension": "^2.13.9",
+    "axios": "^0.24.0",
     "@emotion/css": "latest",
     "@emotion/react": "latest",
     "@emotion/styled": "latest",

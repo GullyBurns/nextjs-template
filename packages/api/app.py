@@ -1,12 +1,15 @@
 from flask import Flask, jsonify, make_response
+from flask_cors import CORS
 from markupsafe import escape
 import pandas as pd
+from snowflake.connector.errors import ProgrammingError
 from utils.snowflake import Snowflake
 import os
 import re
 
 # create and configure the app
 app = Flask(__name__)
+CORS(app)
 
 df = pd.read_csv('data/ALS/claim_clusters.tsv', sep='\t')
 df = df.fillna('')
@@ -64,8 +67,18 @@ def test_response():
 
     return response
 
+# Put some error checking here to refresh stale database connections
+def get_cursor(sf):
+    try:
+        cs = sf.get_cursor(sf_database, sf_schema, sf_role)
+    except ProgrammingError:
+        sf = Snowflake(sf_login, sf_keyfile, sf_passphrase)
+        cs = sf.get_cursor(sf_database, sf_schema, sf_role)
+    return cs
+
 def run_query(cs, sql, cols):
     sql = re.sub('PREFIX_', prefix, sql)
+    print(sql)
     df = sf.execute_query(cs, sql, cols)
     df['id'] = df.id.astype('int64', copy=False)
     data = df.to_dict('records')
@@ -74,7 +87,24 @@ def run_query(cs, sql, cols):
 
 @app.route('/api/list_corpora', methods=['GET'])
 def list_corpora():
-    cs = sf.get_cursor(sf_database, sf_schema, sf_role)
+    cs = get_cursor(sf)
+    sql1 = '''SELECT d.ID, CORPUS_NAME
+            FROM PREFIX_CORPUS as d
+            JOIN PREFIX_CORPUS_TO_PAPER as dp on (d.ID=dp.ID_CORPUS)
+            JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER as p on (p.ID=dp.ID_PAPER)
+        GROUP BY d.ID, CORPUS_NAME, d.CURIS
+        ORDER BY d.ID + 0;
+    '''
+    cols1 = ['id','label']
+    sql1 = re.sub('PREFIX_', prefix, sql1)
+    df = sf.execute_query(cs, sql1, cols1)
+    data = df.to_dict('records')
+    response = make_response(jsonify(data))
+    return response
+
+@app.route('/api/list_corpora_details', methods=['GET'])
+def list_corpora_details():
+    cs = get_cursor(sf)
     sql1 = '''SELECT d.ID, CORPUS_NAME, d.CURIS as MONDO_CODES, COUNT(DISTINCT p.id) AS PAPER_COUNT
             FROM PREFIX_CORPUS as d
             JOIN PREFIX_CORPUS_TO_PAPER as dp on (d.ID=dp.ID_CORPUS)
@@ -101,36 +131,56 @@ def list_corpora():
     #df['MONDO_URLS'] = ['<a href="https://monarchinitiative.org/disease/'+row.MONDO_CODES+'">MONDO</a>' for row in df.itertuples()]
     data = df.to_dict('records')
     response = make_response(jsonify(data))
+    response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
-@app.route('/api/list_authors/<corpus_id>/<page_size>/<page>', methods=['GET'])
-def list_authors(corpus_id, page_size, page):
-    print(corpus_id)
-    cs = sf.get_cursor(sf_database, sf_schema, sf_role)
+@app.route('/api/list_authors/<corpus_id>/<page_size>/<n_pages>', methods=['GET'])
+def list_authors(corpus_id, page_size, n_pages):
+    cs = get_cursor(sf)
     sql = '''
-        SELECT DISTINCT p.id AS ID, p.DOI, p.TITLE, p.ABSTRACT, p.YEAR, p.VOLUME, p.ISSUE, 
-            p.MESH_TERMS_RAW as MESH, p.PAGINATION, p.JOURNAL_NAME_RAW as JOURNAL_TITLE, p.TYPE as ARTICLE_TYPE  
-        FROM PREFIX_CORPUS as d
-            JOIN PREFIX_CORPUS_TO_PAPER as dp on (d.ID=dp.ID_CORPUS)
-            JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER as p on (p.ID=dp.ID_PAPER)
-        WHERE d.ID='''+corpus_id
-    cols = ['id','DOI','TITLE','ABSTRACT','YEAR','VOLUME',
-                   'ISSUE','MESH','PAGINATION','JOURNAL_TITLE','ARTICLE_TYPE' ]
+    select distinct a.id, 
+        a.id_orcid, 
+        a.name as author_name, 
+        sum(ZEROIFNULL(cc.citation_count)/(2023-p.year)) as normalized_citation_count,  
+        loc.institution as Institution,
+        loc.city as City,
+        loc.country as Country,
+        DENSE_RANK() OVER (PARTITION BY CORPUS_NAME ORDER BY normalized_citation_count DESC, a.id, a.id_orcid, a.name, loc.institution DESC) as RANK,
+        CORPUS_NAME
+    from PREFIX_CORPUS_TO_PAPER as dop 
+        JOIN PREFIX_CORPUS as do on (dop.id_corpus=do.id)
+        JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER_TO_AUTHOR_V2 as pa on (dop.id_paper=pa.id_paper)
+        JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER as p on (pa.id_paper=p.id)
+        JOIN FIVETRAN.KG_RDS_CORE_DB.AUTHOR_V2 as a on (pa.id_author=a.id)
+        JOIN PREFIX_CITATION_COUNTS as cc on (dop.ID_PAPER=cc.id)
+        LEFT JOIN PREFIX_AUTHOR_LOCATION as loc on (a.id=loc.author_id)
+    where do.id = <<corpus_id>>    
+    group by a.id, a.id_orcid, a.name, loc.Institution, loc.City, loc.Country, CORPUS_NAME
+    order by normalized_citation_count desc
+'''
+    offset = int(page_size) * int(n_pages)
+    sql = re.sub('<<corpus_id>>', corpus_id, sql)
+    sql = sql + '\n limit ' + str(page_size) + ' OFFSET ' + str(offset)
+    cols = ['id','id_orcid','author_name', 'normalized_citation_count',
+            'Institution', 'City', 'Country', 'RANK', 'CORPUS_NAME']
     return run_query(cs, sql, cols)
 
-
-@app.route('/api/list_papers/<corpus_id>', methods=['GET'])
-def list_papers(corpus_id):
-    cs = sf.get_cursor(sf_database, sf_schema, sf_role)
+@app.route('/api/list_papers/<corpus_id>/<page_size>/<n_pages>', methods=['GET'])
+def list_papers(corpus_id, page_size, n_pages):
+    cs = get_cursor(sf)
     sql = '''
-        SELECT DISTINCT p.id AS ID, p.DOI, p.TITLE, p.ABSTRACT, p.YEAR, p.VOLUME, p.ISSUE, 
+        SELECT DISTINCT p.id AS ID, p.DOI, p.TITLE, p.ABSTRACT, p.YEAR, p.MONTH, p.DAY, p.PUBLICATION_STATUS, p.VOLUME, p.ISSUE, 
             p.MESH_TERMS_RAW as MESH, p.PAGINATION, p.JOURNAL_NAME_RAW as JOURNAL_TITLE, p.TYPE as ARTICLE_TYPE  
         FROM PREFIX_CORPUS as d
             JOIN PREFIX_CORPUS_TO_PAPER as dp on (d.ID=dp.ID_CORPUS)
             JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER as p on (p.ID=dp.ID_PAPER)
-        WHERE d.ID='''+corpus_id
-    cols = ['id','DOI','TITLE','ABSTRACT','YEAR','VOLUME',
-                   'ISSUE','MESH','PAGINATION','JOURNAL_TITLE','ARTICLE_TYPE' ]
+        WHERE d.ID='''+corpus_id+'''
+        ORDER BY YEAR DESC, MONTH DESC, DAY DESC
+        '''
+    offset = int(page_size) * int(n_pages)
+    sql = sql + '\n limit ' + str(page_size) + ' OFFSET ' + str(offset)
+    cols = ['id','DOI','TITLE','ABSTRACT','YEAR','MONTH','DAY','PUBLICATION_STATUS',
+            'VOLUME','ISSUE','MESH','PAGINATION','JOURNAL_TITLE','ARTICLE_TYPE' ]
     return run_query(cs, sql, cols)
 
 @app.route('/api/read/<disease_name>/<data_set>', methods=['GET'])
