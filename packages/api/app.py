@@ -6,6 +6,8 @@ from snowflake.connector.errors import ProgrammingError
 from utils.snowflake import Snowflake
 import os
 import re
+import json
+import datetime
 
 # create and configure the app
 app = Flask(__name__)
@@ -76,11 +78,12 @@ def get_cursor(sf):
         cs = sf.get_cursor(sf_database, sf_schema, sf_role)
     return cs
 
-def run_query(cs, sql, cols):
+def run_query(cs, sql, cols, id_in_query=True):
     sql = re.sub('PREFIX_', prefix, sql)
     print(sql)
     df = sf.execute_query(cs, sql, cols)
-    df['id'] = df.id.astype('int64', copy=False)
+    if id_in_query:
+        df['id'] = df.id.astype('int64', copy=False)
     data = df.to_dict('records')
     response = make_response(jsonify(data))
     return response
@@ -92,7 +95,7 @@ def list_corpora():
             FROM PREFIX_CORPUS as d
             JOIN PREFIX_CORPUS_TO_PAPER as dp on (d.ID=dp.ID_CORPUS)
             JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER as p on (p.ID=dp.ID_PAPER)
-        GROUP BY d.ID, CORPUS_NAME, d.CURIS
+        GROUP BY d.ID, CORPUS_NAME
         ORDER BY d.ID + 0;
     '''
     cols1 = ['id','label']
@@ -134,36 +137,82 @@ def list_corpora_details():
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
-@app.route('/api/list_authors/<corpus_id>/<page_size>/<n_pages>', methods=['GET'])
-def list_authors(corpus_id, page_size, n_pages):
+@app.route('/api/count_authors/<corpus_id>', methods=['GET'])
+def count_authors(corpus_id):
     cs = get_cursor(sf)
     sql = '''
-    select distinct a.id, 
-        a.id_orcid, 
-        a.name as author_name, 
-        sum(ZEROIFNULL(cc.citation_count)/(2023-p.year)) as normalized_citation_count,  
-        loc.institution as Institution,
-        loc.city as City,
-        loc.country as Country,
-        DENSE_RANK() OVER (PARTITION BY CORPUS_NAME ORDER BY normalized_citation_count DESC, a.id, a.id_orcid, a.name, loc.institution DESC) as RANK,
-        CORPUS_NAME
+    select distinct do.id, count(a.id)
     from PREFIX_CORPUS_TO_PAPER as dop 
         JOIN PREFIX_CORPUS as do on (dop.id_corpus=do.id)
         JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER_TO_AUTHOR_V2 as pa on (dop.id_paper=pa.id_paper)
         JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER as p on (pa.id_paper=p.id)
         JOIN FIVETRAN.KG_RDS_CORE_DB.AUTHOR_V2 as a on (pa.id_author=a.id)
-        JOIN PREFIX_CITATION_COUNTS as cc on (dop.ID_PAPER=cc.id)
-        LEFT JOIN PREFIX_AUTHOR_LOCATION as loc on (a.id=loc.author_id)
-    where do.id = <<corpus_id>>    
-    group by a.id, a.id_orcid, a.name, loc.Institution, loc.City, loc.Country, CORPUS_NAME
-    order by normalized_citation_count desc
+    where do.id = <<corpus_id>>
+    group by do.id
 '''
+    sql = re.sub('<<corpus_id>>', corpus_id, sql)
+    cols = ['id', 'author_count']
+    return run_query(cs, sql, cols)
+
+@app.route('/api/list_authors/<corpus_id>/<page_size>/<n_pages>', methods=['GET'])
+def list_authors(corpus_id, page_size, n_pages):
+    cs = get_cursor(sf)
+    sql = '''select cc.id, cc.id_corpus, do.corpus_name, 
+        OBJECT_CONSTRUCT('orcid_id', a.id_orcid, 'author_name', a.name) as author_json,
+        LOG(10,cc.weighted_citation_score),
+        cc.citations_per_year,
+        LOG(10,sum(ZEROIFNULL(p.paper_counts)/(2023-p.year))) as weighted_pub_score,
+        array_agg(object_construct('p_year', year, 'p_count', paper_counts)) within group (order by year) as papers_per_year
+    from (
+      select distinct pa.id_author as id, dop.id_corpus as ID_CORPUS, p.YEAR, COUNT(pa.id_paper) as paper_counts
+        from FIVETRAN.KG_RDS_CORE_DB.PAPER_TO_AUTHOR_V2 as pa 
+            JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER as p on (p.id=pa.id_paper)
+            JOIN PREFIX_CORPUS_TO_PAPER as dop on (p.id=dop.id_paper)
+        group by pa.id_author, dop.id_corpus, p.year) as p
+      inner join (
+        select distinct pa.id_author as id, dop.id_corpus as ID_CORPUS, 
+                sum(ZEROIFNULL(cc.citation_count)/(2023-p.year)) as weighted_citation_score,
+                array_agg(object_construct('c_year', p.year, 'c_score', cc.citation_count)) within group (order by year) as citations_per_year
+        from FIVETRAN.KG_RDS_CORE_DB.PAPER_TO_AUTHOR_V2 as pa 
+            JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER as p on (p.id=pa.id_paper)
+            JOIN PREFIX_CORPUS_TO_PAPER as dop on (p.id=dop.id_paper)
+            JOIN PREFIX_CITATION_COUNTS as cc on (dop.ID_PAPER=cc.id)
+        group by pa.id_author, dop.id_corpus) as cc on (p.id=cc.id and p.id_corpus=cc.id_corpus)
+      inner join PREFIX_CORPUS as do on (cc.id_corpus=do.id)
+      inner join FIVETRAN.KG_RDS_CORE_DB.AUTHOR_V2 as a on (cc.id=a.id)
+    where do.id = 0 
+    group by cc.id, cc.id_corpus, cc.weighted_citation_score, cc.citations_per_year, a.name, a.id_orcid, do.corpus_name
+    order by weighted_pub_score desc
+    '''
     offset = int(page_size) * int(n_pages)
     sql = re.sub('<<corpus_id>>', corpus_id, sql)
     sql = sql + '\n limit ' + str(page_size) + ' OFFSET ' + str(offset)
-    cols = ['id','id_orcid','author_name', 'normalized_citation_count',
-            'Institution', 'City', 'Country', 'RANK', 'CORPUS_NAME']
-    return run_query(cs, sql, cols)
+    cols = ['id', 'id_corpus', 'corpus_name', 'author_json',
+            'weighted_citation_score',
+            'citations_per_year',
+            'weighted_pub_score',
+            'pubs_per_year']
+
+    # HARD-CODE THE QUERY TO GIVE CORRECT FORMAT FOR PUB_PER_YEAR SPARKLINES
+    sql = re.sub('PREFIX_', prefix, sql)
+    df = sf.execute_query(cs, sql, cols)
+    df['id'] = df.id.astype('int64', copy=False)
+
+    l1 = []
+    l2 = []
+    for row in df.itertuples():
+        m1 = {}
+        for el in json.loads(row.pubs_per_year):
+            m1[el['p_year']] = el['p_count']
+        l1.append([m1[year] if m1.get(year) else 0 for year in range(2000,2022)])
+        m2 = {}
+        for el in json.loads(row.citations_per_year):
+            m2[el['c_year']] = el['c_score']
+        l2.append([m2[year] if m2.get(year) else 0 for year in range(2000,2022)])
+    df['pubs_per_year'] = l1
+    df['citations_per_year'] = l2
+    data = df.to_dict('records')
+    return make_response(jsonify(data))
 
 @app.route('/api/list_papers/<corpus_id>/<page_size>/<n_pages>', methods=['GET'])
 def list_papers(corpus_id, page_size, n_pages):
@@ -182,6 +231,28 @@ def list_papers(corpus_id, page_size, n_pages):
     cols = ['id','DOI','TITLE','ABSTRACT','YEAR','MONTH','DAY','PUBLICATION_STATUS',
             'VOLUME','ISSUE','MESH','PAGINATION','JOURNAL_TITLE','ARTICLE_TYPE' ]
     return run_query(cs, sql, cols)
+
+@app.route('/api/count_papers_per_month/<corpus_id>', methods=['GET'])
+def count_papers_per_year(corpus_id):
+    cs = get_cursor(sf)
+    sql = '''
+        SELECT DISTINCT count(p.id) AS paper_count, 
+            p.YEAR, p.MONTH
+        FROM PREFIX_CORPUS as d
+            JOIN PREFIX_CORPUS_TO_PAPER as dp on (d.ID=dp.ID_CORPUS)
+            JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER as p on (p.ID=dp.ID_PAPER)
+        WHERE d.ID='''+corpus_id+'''
+        GROUP BY YEAR, MONTH
+        ORDER BY YEAR, MONTH
+        '''
+    cols = ['paper_count', 'YEAR', 'MONTH']
+    sql = re.sub('PREFIX_', prefix, sql)
+    df = sf.execute_query(cs, sql, cols)
+    df = df.fillna(1).loc[df.YEAR>0]
+    df['date'] = [datetime.date(int(row.YEAR), int(row.MONTH), 1).isoformat() for row in df.itertuples()]
+    df = df.drop(columns=['YEAR', 'MONTH'])
+    data = df.to_dict('records')
+    return make_response(jsonify(data))
 
 @app.route('/api/read/<disease_name>/<data_set>', methods=['GET'])
 def read_tsv(disease_name, data_set):

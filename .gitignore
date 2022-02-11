@@ -70,3 +70,5 @@ typings/
 __pycache__
 .history
 .idea/
+
+docker-compose.yml

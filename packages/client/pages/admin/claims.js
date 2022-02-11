@@ -42,72 +42,47 @@ import {
 
 import styles from "assets/jss/nextjs-material-dashboard/views/dashboardStyle.js";
 
-function Dashboard({headings, data}) {
+function ClaimsPage({headings, data}) {
   const useStyles = makeStyles(styles);
   const classes = useStyles();
-
-  //console.log(allData.headings)
-  const corpora = useSelector((state) => state.corpus)
 
   return (
     <div>
       <GridContainer>
-      <GridItem xs={12} sm={12} md={12}>
+      <GridItem xs={12} sm={12} md={6}>
           <Card>
-          <CardHeader color="primary">
+          <CardHeader color="danger">
             <h4 className={classes.cardTitleWhite}>D3 Visualizations</h4>
             <p className={classes.cardCategoryWhite}>
               Time to drive the work
             </p>
           </CardHeader>
           <CardBody>
-              <MyD3Component data={[10,11,12]} />
-          </CardBody>
-        </Card>
-        <Card>
-          <CardHeader color="primary">
-            <h4 className={classes.cardTitleWhite}>Simple Table</h4>
-            <p className={classes.cardCategoryWhite}>
-              Here is a subtitle for this table
-            </p>
-          </CardHeader>
-          <CardBody>
-              <p>{corpora.corpus_list.length}</p>
-            <Table
-                tableHeaderColor="primary"
-                tableHead={headings}
-                tableData={data}
-            />
+              <MyD3Component data={[10,12111,12]} />
           </CardBody>
         </Card>
       </GridItem>
-
+      <GridItem xs={12} sm={12} md={12}>
+          <Card>
+          <CardHeader color="danger">
+            <h4 className={classes.cardTitleWhite}>D3 Visualizations</h4>
+            <p className={classes.cardCategoryWhite}>
+              Booms
+            </p>
+          </CardHeader>
+          <CardBody>
+              <App2/>
+          </CardBody>
+        </Card>
+      </GridItem>
     </GridContainer>
     </div>
   );
 }
 
-//import {getTsvDataFromDisk} from "variables/tables.js";
-//export async function getStaticProps() {
-//  const allData = getTsvDataFromDisk()
-//  return {
-//    props: {
-//      allData
-//    }
-//  }
-//}
-
 import {MyD3Component} from "../../components/D3/MyD3Component";
-import {useSelector} from "react-redux";
-export async function getServerSideProps() {
-  const res = await fetch(`http://10.0.0.184:5001/api/ALS/claims`)
-  const allData = await res.json()
-  const headings = Object.keys(allData[0])
-  const data = allData.map(x => Object.values(x));
-  //console.log()
-  return { props: { 'headings': headings, 'data': data } }
-}
+import App2 from "../../components/D3/App2";
 
-Dashboard.layout = Admin;
+ClaimsPage.layout = Admin;
 
-export default Dashboard;
+export default ClaimsPage;

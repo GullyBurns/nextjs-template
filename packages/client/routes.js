@@ -27,7 +27,7 @@ import Language from "@material-ui/icons/Language";
 
 const dashboardRoutes = [
   {
-    path: "/disease-list",
+    path: "/corpus",
     name: "Dashboard",
     icon: Dashboard,
     layout: "/admin",
@@ -39,9 +39,9 @@ const dashboardRoutes = [
 //    layout: "/admin",
 //  },
 //  {
-//    path: "/papers",
-//    name: "Papers",
-//    icon: LibraryBooks,
+//    path: "/example",
+//    name: "Stuff",
+//    icon: Dashboard,
 //    layout: "/admin",
 //  },
   {

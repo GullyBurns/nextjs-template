@@ -3,7 +3,7 @@ import Router from "next/router";
 
 export default function Index() {
   React.useEffect(() => {
-    Router.push("/admin/disease-list");
+    Router.push("/admin/corpus");
   });
 
   return <div />;

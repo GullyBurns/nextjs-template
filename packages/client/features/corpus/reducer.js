@@ -1,11 +1,14 @@
 import { createReducer } from '@reduxjs/toolkit';
-import { getCorpusList, setCorpusId, getAuthorList } from './actions';
+import { getCorpusList, setCorpusId, getAuthorList, setAuthorPage, getAuthorCount, getPaperHistogram} from './actions';
 
 const initialState = {
   data: {
     corpusList: [],
     corpusId: -1,
-    authorList: []
+    paperHistogram: [],
+    authorList: [],
+    authorCount: -1,
+    authorPage: 0
   },
   pending: false,
   error: false,
@@ -13,6 +16,15 @@ const initialState = {
 
 export const corpusReducer = createReducer(initialState, (builder) => {
   builder
+      // SETTING PARAMETERS IN MODEL FROM APP
+    .addCase(setCorpusId, (state, {payload}) => {
+      state.data.corpusId = payload;
+      state.data.authorPage = 0;
+    })
+    .addCase(setAuthorPage, (state, {payload}) => {
+      state.data.authorPage = payload;
+    })
+      // LOADING DATA FROM SERVICES
     .addCase(getCorpusList.pending, (state) => {
       state.pending = true;
     })
@@ -24,9 +36,7 @@ export const corpusReducer = createReducer(initialState, (builder) => {
       state.pending = false;
       state.error = true;
     })
-    .addCase(setCorpusId, (state, {payload}) => {
-      state.data.corpusId = payload;
-    })
+      // CORPUS AUTHOR GRID CONTROL
     .addCase(getAuthorList.pending, (state) => {
       state.pending = true;
     })
@@ -38,6 +48,35 @@ export const corpusReducer = createReducer(initialState, (builder) => {
       state.pending = false;
       state.error = true;
     })
+    .addCase(getAuthorCount.pending, (state) => {
+      state.pending = true;
+    })
+    .addCase(getAuthorCount.fulfilled, (state, {payload}) => {
+      state.pending = false
+      state.data.authorCount = payload[0].author_count;
+    })
+    .addCase(getAuthorCount.rejected, (state) => {
+      state.pending = false;
+      state.error = true;
+    })
+      // CORPUS PUBLICATION HISTOGRAM CONTROL
+    .addCase(getPaperHistogram.pending, (state) => {
+      state.pending = true;
+    })
+    .addCase(getPaperHistogram.fulfilled, (state, { payload }) => {
+      state.pending = false;
+      state.data.paperHistogram = payload.map(tuple => {
+        return {
+          'paper_count': tuple.paper_count,
+          'date': new Date(tuple.date)
+        }
+      });
+    })
+    .addCase(getPaperHistogram.rejected, (state) => {
+      state.pending = false;
+      state.error = true;
+    })
+
 });
 
 export default corpusReducer;
