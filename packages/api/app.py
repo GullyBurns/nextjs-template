@@ -180,7 +180,7 @@ def list_authors(corpus_id, page_size, n_pages):
         group by pa.id_author, dop.id_corpus) as cc on (p.id=cc.id and p.id_corpus=cc.id_corpus)
       inner join PREFIX_CORPUS as do on (cc.id_corpus=do.id)
       inner join FIVETRAN.KG_RDS_CORE_DB.AUTHOR_V2 as a on (cc.id=a.id)
-    where do.id = 0 
+    where do.id = '''+corpus_id+''' 
     group by cc.id, cc.id_corpus, cc.weighted_citation_score, cc.citations_per_year, a.name, a.id_orcid, do.corpus_name
     order by weighted_pub_score desc
     '''
@@ -218,18 +218,42 @@ def list_authors(corpus_id, page_size, n_pages):
 def list_papers(corpus_id, page_size, n_pages):
     cs = get_cursor(sf)
     sql = '''
-        SELECT DISTINCT p.id AS ID, p.DOI, p.TITLE, p.ABSTRACT, p.YEAR, p.MONTH, p.DAY, p.PUBLICATION_STATUS, p.VOLUME, p.ISSUE, 
-            p.MESH_TERMS_RAW as MESH, p.PAGINATION, p.JOURNAL_NAME_RAW as JOURNAL_TITLE, p.TYPE as ARTICLE_TYPE  
+        SELECT DISTINCT p.id AS ID, p.DOI, (c.CITATION_COUNT)/(2023-p.year) as weighted_citation_score, 
+                n.AUTHOR_STRING, p.YEAR, p.TITLE, p.JOURNAL_NAME_RAW as JOURNAL_TITLE, 
+                p.VOLUME, p.PAGINATION, p.TYPE as ARTICLE_TYPE  
+        FROM PREFIX_CORPUS as d
+            JOIN PREFIX_CORPUS_TO_PAPER as dp on (d.ID=dp.ID_CORPUS)
+            JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER as p on (p.ID=dp.ID_PAPER)
+            JOIN PREFIX_PAPER_NOTES as n on (p.ID=n.PMID)
+            JOIN PREFIX_CITATION_COUNTS as c on (p.ID=c.ID)
+        WHERE d.ID='''+corpus_id+'''
+        ORDER BY weighted_citation_score DESC
+        '''
+    offset = int(page_size) * int(n_pages)
+    sql = sql + '\n limit ' + str(page_size) + ' OFFSET ' + str(offset)
+    cols = ['id','DOI','CITATION_SCORE','AUTHORS','YEAR','TITLE','JOURNAL_TITLE','VOLUME',
+            'PAGE','ARTICLE_TYPE' ]
+    sql = re.sub('PREFIX_', prefix, sql)
+    df = sf.execute_query(cs, sql, cols)
+    df['id'] = df.id.astype('int64', copy=False)
+    df = df.fillna('')
+    df['REF'] = ['%s %s:%s'%(row.JOURNAL_TITLE,row.VOLUME,row.PAGE) for row in df.itertuples()]
+    df = df.drop(columns=['JOURNAL_TITLE','VOLUME','PAGE'])
+    data = df.to_dict('records')
+    return make_response(jsonify(data))
+
+@app.route('/api/count_papers/<corpus_id>', methods=['GET'])
+def count_papers(corpus_id):
+    cs = get_cursor(sf)
+    sql = '''
+        SELECT DISTINCT d.id, count(p.id)  
         FROM PREFIX_CORPUS as d
             JOIN PREFIX_CORPUS_TO_PAPER as dp on (d.ID=dp.ID_CORPUS)
             JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER as p on (p.ID=dp.ID_PAPER)
         WHERE d.ID='''+corpus_id+'''
-        ORDER BY YEAR DESC, MONTH DESC, DAY DESC
+        GROUP BY d.id
         '''
-    offset = int(page_size) * int(n_pages)
-    sql = sql + '\n limit ' + str(page_size) + ' OFFSET ' + str(offset)
-    cols = ['id','DOI','TITLE','ABSTRACT','YEAR','MONTH','DAY','PUBLICATION_STATUS',
-            'VOLUME','ISSUE','MESH','PAGINATION','JOURNAL_TITLE','ARTICLE_TYPE' ]
+    cols = ['id','paper_count']
     return run_query(cs, sql, cols)
 
 @app.route('/api/count_papers_per_month/<corpus_id>', methods=['GET'])
@@ -253,6 +277,46 @@ def count_papers_per_year(corpus_id):
     df = df.drop(columns=['YEAR', 'MONTH'])
     data = df.to_dict('records')
     return make_response(jsonify(data))
+
+@app.route('/api/count_concepts/<corpus_id>', methods=['GET'])
+def count_concepts(corpus_id):
+    cs = get_cursor(sf)
+    sql = '''
+    select distinct do.id, count(c.id)
+    from PREFIX_CORPUS_TO_PAPER as dop 
+        JOIN PREFIX_CORPUS as do on (dop.id_corpus=do.id)
+        JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER_TO_CONCEPT as pc on (dop.id_paper=pc.id_paper)
+        JOIN FIVETRAN.KG_RDS_CORE_DB.CONCEPT as c on (pc.id_concept=c.id)
+    where do.id = <<corpus_id>>
+    group by do.id
+'''
+    sql = re.sub('<<corpus_id>>', corpus_id, sql)
+    cols = ['id', 'concept_count']
+    return run_query(cs, sql, cols)
+
+@app.route('/api/list_concepts/<corpus_id>/<page_size>/<n_pages>', methods=['GET'])
+def list_concepts(corpus_id, page_size, n_pages):
+    cs = get_cursor(sf)
+    sql = '''select c.id as id, c.name as concept_name, st.category, st.semtype, count(p.id) as paper_count
+    from PREFIX_CORPUS as do
+        JOIN PREFIX_CORPUS_TO_PAPER as dop on (dop.id_corpus=do.id)
+        JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER as p on (dop.id_paper=p.id)
+        JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER_TO_CONCEPT as pc on (dop.id_paper=pc.id_paper)
+        JOIN FIVETRAN.KG_RDS_CORE_DB.CONCEPT as c on (pc.id_concept=c.id)
+        JOIN FIVETRAN.KG_RDS_CORE_DB.CONCEPT_TO_SEMANTIC_TYPE as cst on (cst.id_concept=c.id)
+        JOIN SEMANTIC_TYPES_CATEGORIES as st on (cst.id_semantic_type=st.s_id)
+    where do.id = <<corpus_id>>
+    group by do.id, c.id, c.name, do.corpus_name, st.category, st.semtype
+    order by paper_count desc
+    '''
+    offset = int(page_size) * int(n_pages)
+    sql = re.sub('<<corpus_id>>', corpus_id, sql)
+    sql = sql + '\n limit ' + str(page_size) + ' OFFSET ' + str(offset)
+    cols = ['id', 'concept_name',
+            'sem_category',
+            'sem_type',
+            'paper_count']
+    return run_query(cs, sql, cols)
 
 @app.route('/api/read/<disease_name>/<data_set>', methods=['GET'])
 def read_tsv(disease_name, data_set):

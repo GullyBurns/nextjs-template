@@ -1,5 +1,8 @@
 import { createReducer } from '@reduxjs/toolkit';
-import { getCorpusList, setCorpusId, getAuthorList, setAuthorPage, getAuthorCount, getPaperHistogram} from './actions';
+import { getCorpusList, setCorpusId, setAuthorPage, setConceptPage, setPaperPage,
+  getAuthorList, getAuthorCount,
+  getPaperList, getPaperCount, getPaperHistogram,
+  getConceptCount, getConceptList} from './actions';
 
 const initialState = {
   data: {
@@ -8,7 +11,13 @@ const initialState = {
     paperHistogram: [],
     authorList: [],
     authorCount: -1,
-    authorPage: 0
+    authorPage: 0,
+    paperList: [],
+    paperCount: -1,
+    paperPage: 0,
+    conceptList: [],
+    conceptCount: -1,
+    conceptPage: 0
   },
   pending: false,
   error: false,
@@ -24,6 +33,12 @@ export const corpusReducer = createReducer(initialState, (builder) => {
     .addCase(setAuthorPage, (state, {payload}) => {
       state.data.authorPage = payload;
     })
+    .addCase(setConceptPage, (state, {payload}) => {
+      state.data.conceptPage = payload;
+    })
+    .addCase(setPaperPage, (state, {payload}) => {
+      state.data.paperPage = payload;
+    })
       // LOADING DATA FROM SERVICES
     .addCase(getCorpusList.pending, (state) => {
       state.pending = true;
@@ -33,6 +48,28 @@ export const corpusReducer = createReducer(initialState, (builder) => {
       state.data.corpusList = payload;
     })
     .addCase(getCorpusList.rejected, (state) => {
+      state.pending = false;
+      state.error = true;
+    })      // CORPUS PAPER GRID CONTROL
+    .addCase(getPaperList.pending, (state) => {
+      state.pending = true;
+    })
+    .addCase(getPaperList.fulfilled, (state, { payload }) => {
+      state.pending = false;
+      state.data.paperList = payload;
+    })
+    .addCase(getPaperList.rejected, (state) => {
+      state.pending = false;
+      state.error = true;
+    })
+    .addCase(getPaperCount.pending, (state) => {
+      state.pending = true;
+    })
+    .addCase(getPaperCount.fulfilled, (state, {payload}) => {
+      state.pending = false
+      state.data.paperCount = payload[0].paper_count;
+    })
+    .addCase(getPaperCount.rejected, (state) => {
       state.pending = false;
       state.error = true;
     })
@@ -59,24 +96,41 @@ export const corpusReducer = createReducer(initialState, (builder) => {
       state.pending = false;
       state.error = true;
     })
+           // CORPUS CONCEPT GRID CONTROL
+    .addCase(getConceptList.pending, (state) => {
+      state.pending = true;
+    })
+    .addCase(getConceptList.fulfilled, (state, { payload }) => {
+      state.pending = false;
+      state.data.conceptList = payload;
+    })
+    .addCase(getConceptList.rejected, (state) => {
+      state.pending = false;
+      state.error = true;
+    })
+    .addCase(getConceptCount.pending, (state) => {
+      state.pending = true;
+    })
+    .addCase(getConceptCount.fulfilled, (state, {payload}) => {
+      state.pending = false
+      state.data.conceptCount = payload[0].concept_count;
+    })
+    .addCase(getConceptCount.rejected, (state) => {
+      state.pending = false;
+      state.error = true;
+    })
       // CORPUS PUBLICATION HISTOGRAM CONTROL
     .addCase(getPaperHistogram.pending, (state) => {
       state.pending = true;
     })
     .addCase(getPaperHistogram.fulfilled, (state, { payload }) => {
       state.pending = false;
-      state.data.paperHistogram = payload.map(tuple => {
-        return {
-          'paper_count': tuple.paper_count,
-          'date': new Date(tuple.date)
-        }
-      });
+      state.data.paperHistogram = payload
     })
     .addCase(getPaperHistogram.rejected, (state) => {
       state.pending = false;
       state.error = true;
     })
-
 });
 
 export default corpusReducer;

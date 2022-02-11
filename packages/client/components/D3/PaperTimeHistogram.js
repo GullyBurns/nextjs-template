@@ -8,6 +8,13 @@ export default function PaperTimeHistogram() {
 
   const { data, pending, error } = useSelector((state) => state.corpus);
 
+  const mapped_data = data.paperHistogram.map(tuple => {
+        return {
+          'paper_count': tuple.paper_count,
+          'date': new Date(tuple.date)
+        }
+      });
+
   useEffect(() => {
     if (data.paperHistogram === undefined) return;
     const chart = Plot.plot({
@@ -21,7 +28,7 @@ export default function PaperTimeHistogram() {
         label: "↑ Paper Count"
       },
       marks: [
-        Plot.rectY(data.paperHistogram, {x: "date", interval:d3.timeYear, y: "paper_count" }),
+        Plot.rectY(mapped_data, {x: "date", interval:d3.timeYear, y: "paper_count" }),
         Plot.ruleY([0])
       ]
     })
