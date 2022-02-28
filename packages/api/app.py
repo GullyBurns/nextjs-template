@@ -80,7 +80,7 @@ def get_cursor(sf):
 
 def run_query(cs, sql, cols, id_in_query=True):
     sql = re.sub('PREFIX_', prefix, sql)
-    print(sql)
+    #print(sql)
     df = sf.execute_query(cs, sql, cols)
     if id_in_query:
         df['id'] = df.id.astype('int64', copy=False)
@@ -219,11 +219,13 @@ def list_papers(corpus_id, page_size, n_pages):
     cs = get_cursor(sf)
     sql = '''
         SELECT DISTINCT p.id AS ID, p.DOI, (c.CITATION_COUNT)/(2023-p.year) as weighted_citation_score, 
-                n.AUTHOR_STRING, p.YEAR, p.TITLE, p.JOURNAL_NAME_RAW as JOURNAL_TITLE, 
+                n.AUTHOR_STRING, p.YEAR, p.TITLE, v.ISO_ABBREVIATION, 
                 p.VOLUME, p.PAGINATION, p.TYPE as ARTICLE_TYPE  
         FROM PREFIX_CORPUS as d
             JOIN PREFIX_CORPUS_TO_PAPER as dp on (d.ID=dp.ID_CORPUS)
             JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER as p on (p.ID=dp.ID_PAPER)
+            JOIN FIVETRAN.KG_RDS_CORE_DB.PAPER_TO_VENUE as pv on (p.ID=pv.ID_PAPER)
+            JOIN FIVETRAN.KG_RDS_CORE_DB.VENUE as v on (v.ID=pv.ID_VENUE)
             JOIN PREFIX_PAPER_NOTES as n on (p.ID=n.PMID)
             JOIN PREFIX_CITATION_COUNTS as c on (p.ID=c.ID)
         WHERE d.ID='''+corpus_id+'''
@@ -231,14 +233,14 @@ def list_papers(corpus_id, page_size, n_pages):
         '''
     offset = int(page_size) * int(n_pages)
     sql = sql + '\n limit ' + str(page_size) + ' OFFSET ' + str(offset)
-    cols = ['id','DOI','CITATION_SCORE','AUTHORS','YEAR','TITLE','JOURNAL_TITLE','VOLUME',
+    cols = ['id','DOI','CITATION_SCORE','AUTHORS','YEAR','TITLE','ISO_ABBREVIATION','VOLUME',
             'PAGE','ARTICLE_TYPE' ]
     sql = re.sub('PREFIX_', prefix, sql)
     df = sf.execute_query(cs, sql, cols)
     df['id'] = df.id.astype('int64', copy=False)
     df = df.fillna('')
-    df['REF'] = ['%s %s:%s'%(row.JOURNAL_TITLE,row.VOLUME,row.PAGE) for row in df.itertuples()]
-    df = df.drop(columns=['JOURNAL_TITLE','VOLUME','PAGE'])
+    df['JOURNAL_REF'] = ['%s %s:%s'%(row.ISO_ABBREVIATION,row.VOLUME,row.PAGE) for row in df.itertuples()]
+    df = df.drop(columns=['ISO_ABBREVIATION','VOLUME','PAGE'])
     data = df.to_dict('records')
     return make_response(jsonify(data))
 
@@ -257,10 +259,10 @@ def count_papers(corpus_id):
     return run_query(cs, sql, cols)
 
 @app.route('/api/count_papers_per_month/<corpus_id>', methods=['GET'])
-def count_papers_per_year(corpus_id):
+def count_papers_per_month(corpus_id):
     cs = get_cursor(sf)
     sql = '''
-        SELECT DISTINCT count(p.id) AS paper_count, 
+        SELECT DISTINCT count(DISTINCT p.id) AS paper_count, 
             p.YEAR, p.MONTH
         FROM PREFIX_CORPUS as d
             JOIN PREFIX_CORPUS_TO_PAPER as dp on (d.ID=dp.ID_CORPUS)
@@ -271,6 +273,7 @@ def count_papers_per_year(corpus_id):
         '''
     cols = ['paper_count', 'YEAR', 'MONTH']
     sql = re.sub('PREFIX_', prefix, sql)
+    print(sql)
     df = sf.execute_query(cs, sql, cols)
     df = df.fillna(1).loc[df.YEAR>0]
     df['date'] = [datetime.date(int(row.YEAR), int(row.MONTH), 1).isoformat() for row in df.itertuples()]

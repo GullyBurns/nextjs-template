@@ -75,7 +75,7 @@ export default function PaperTable() {
       resizable: true,
     },
     {
-      field: 'REF',
+      field: 'JOURNAL_REF',
       headerName: 'Journal Ref.',
       type: 'string',
       width: 320,

@@ -34,7 +34,7 @@ function CorpusDashboard() {
       <GridContainer>
         <GridItem xs={12} sm={12} md={6}>
           <Card>
-          <CardHeader color="danger">
+          <CardHeader color="dark">
             <h4 className={classes.cardTitleWhite}>Pubmed Histogram</h4>
             <p className={classes.cardCategoryWhite}>
               Distribution of published papers over time
@@ -47,7 +47,7 @@ function CorpusDashboard() {
       </GridItem>
         <GridItem xs={12} sm={12} md={6}>
           <Card>
-          <CardHeader color="danger">
+          <CardHeader color="dark">
             <h4 className={classes.cardTitleWhite}>Concepts</h4>
             <p className={classes.cardCategoryWhite}>
               Table of Concepts + Counts in Corpus
@@ -62,7 +62,7 @@ function CorpusDashboard() {
       <GridContainer>
         <GridItem xs={12} sm={12} md={6}>
             <Card>
-            <CardHeader color="danger">
+            <CardHeader color="dark">
               <h4 className={classes.cardTitleWhite}>Author List</h4>
               <p className={classes.cardCategoryWhite}>
                 Tabulate Authors.
@@ -77,7 +77,7 @@ function CorpusDashboard() {
       <GridContainer>
         <GridItem xs={12} sm={12} md={12}>
             <Card>
-            <CardHeader color="danger">
+            <CardHeader color="dark">
               <h4 className={classes.cardTitleWhite}>Paper List</h4>
               <p className={classes.cardCategoryWhite}>
                 Table of Papers in corpus.
