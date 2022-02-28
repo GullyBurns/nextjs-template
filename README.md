@@ -9,7 +9,7 @@ a simple NextJS client on top of a Flask python backend.
  
 * https://github.com/KumarAbhirup/dockerized
 * https://github.com/GullyBurns/react-flask-docker-boilerplate
-* https://github.com/creativetimofficial/material-dashboard
+* https://github.com/creativetimofficial/nextjs-material-dashboard
 
 This application is intended to provide a useful starting point for research prototyping 
 based on pythonic data science with full data-visualization capabiliities derived from
